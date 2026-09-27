@@ -1,0 +1,19 @@
+# 本机/服务器上的运行产物
+logs/
+*.log
+report.txt
+report.json
+installer.meta
+_api.html
+
+# 含密钥的本地配置 —— 永不入库
+omr.env
+omr-secrets.env
+vps.credentials.json
+*.pem
+*.key
+
+# 打包/临时
+*.tgz
+*.part
+.tmp/
