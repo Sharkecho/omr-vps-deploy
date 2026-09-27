@@ -18,7 +18,7 @@
 # =============================================================================
 [CmdletBinding()]
 param(
-    [string]$VpsHost = "172.236.187.101",
+    [string]$VpsHost = "192.46.215.164",
     [int]$SshPort = 0,
     [string]$User = "root",
     [string]$KeyFile = "$env:USERPROFILE\.ssh\chatgpt_vps",

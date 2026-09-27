@@ -4,10 +4,24 @@
 服务器被服务商重装/重置后，用一条命令恢复到"路由器能连上"的状态 —— 包括装什么版本、
 怎么验收、装完路由器要改哪里，全都固化在这里，不再依赖记忆。
 
-- 目标服务器（本项目的生产 VPS）：`172.236.187.101`
+- 目标服务器（当前生产 VPS）：`192.46.215.164`（旧 VPS `172.236.187.101` 已停用）
 - 配套路由器固件：OMR `v0.63-6.12`（GL-MT3000 / mediatek-filogic）
-- 默认部署版本：`omr-vps` **v0.1052**（= 这台服务器此前与路由器正常对接的版本）
+- 默认部署版本：`omr-vps` **v0.1052**（= 旧服务器此前与路由器正常对接的版本）
 - 默认内核线：**6.12**（与路由器固件的内核线一致）
+
+### ⚠️ 对操作系统的要求（装之前先看）
+
+官方安装器**只支持**（其它系统会直接 exit 1，什么都不装）：
+
+| 系统 | 支持版本 |
+|---|---|
+| **Debian（首选）** | 9 / 10 / 11 / 12 / **13** |
+| Ubuntu | 18.04 / 19.04 / 20.04 / 22.04（官方原话 *Use Debian when possible*） |
+
+实测踩过：服务商默认给的 **Ubuntu 24.04 会被拒装**。请在服务商客户区
+（Services → 服务器 → SERVER INFORMATION → **Install → Reinstall OS**）
+选 **Debian 12 或 13**，等待重装完成（官方文档称 1–10 分钟）再部署。
+DigiRDP 面板支持 Windows/Linux 模板任选（见其知识库）。
 
 ---
 
@@ -16,7 +30,7 @@
 ### 路线 A · 直接登录 VPS（推荐）
 
 ```sh
-ssh -p 65222 root@172.236.187.101          # 重装后还没装 OMR 时用 -p 22
+ssh -p 22 root@192.46.215.164              # 重装后的新系统；装完 OMR 后 SSH 会被挪到 65222
 
 # 先看再跑（推荐）
 curl -fsSLO https://raw.githubusercontent.com/Sharkecho/omr-vps-deploy/main/deploy.sh
@@ -123,7 +137,8 @@ KERNEL=6.18     bash deploy.sh          # 临时换内核线
    #   password = <OMR_ADMIN_PASS>
    ```
 
-2. 路由器 LuCI → **OpenMPTCProuter → 系统/服务器** → 把 API 用户名/密码改成上面这组 → 保存应用。
+2. 路由器 LuCI → **OpenMPTCProuter → 系统/服务器** → 核对**服务器 IP**（当前为
+   `192.46.215.164`，端口 `65500`），并把 API 用户名/密码改成上面这组 → 保存应用。
 
    路由器随后会自己从服务端 API **把隧道端口/密码全部拉回来**（隧道不需要逐个手填）。
 3. 等 1–2 分钟，`tun0` 起来、MPTCP 端点回来即配对完成。
@@ -160,9 +175,9 @@ bash /root/omr-deploy/deploy.sh
 `PASS=n FAIL=0` 之后再从外部复核一次（换台机器或手机热点）：
 
 ```sh
-nc -vz 172.236.187.101 65222
-nc -vz 172.236.187.101 65500
-curl -k https://172.236.187.101:65500/     # 期望 200 "Welcome to OpenMPTCProuter Server part"
+nc -vz 192.46.215.164 65222
+nc -vz 192.46.215.164 65500
+curl -k https://192.46.215.164:65500/     # 期望 200 "Welcome to OpenMPTCProuter Server part"
 ```
 
 ---

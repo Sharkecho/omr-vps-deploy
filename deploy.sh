@@ -124,14 +124,22 @@ preflight() {
     # 1. root
     if [ "$(id -u)" -eq 0 ]; then ok "以 root 运行"; else pf_fail "必须以 root 运行（当前 uid=$(id -u)）"; fi
 
-    # 2. OS
+    # 2. OS —— 与官方安装器的支持矩阵完全一致（它装不上就不浪费后面的步骤）
     if [ -r /etc/os-release ]; then
         # shellcheck disable=SC1091
         . /etc/os-release
+        OS_OK=0
         case "${ID:-}" in
-            debian|ubuntu) ok "OS: ${PRETTY_NAME:-$ID $VERSION_ID}" ;;
-            *) pf_fail "OS 不是 Debian/Ubuntu（ID=${ID:-unknown}）—— 官方安装器只支持这两系" ;;
+            debian) case "$VERSION_ID" in 9|10|11|12|13) OS_OK=1 ;; esac ;;
+            ubuntu) case "$VERSION_ID" in 18.04|19.04|20.04|22.04) OS_OK=1 ;; esac ;;
         esac
+        if [ "$OS_OK" = 1 ]; then
+            ok "OS: ${PRETTY_NAME:-$ID $VERSION_ID}"
+        else
+            pf_fail "OS ${ID:-?} ${VERSION_ID:-?} 不在官方安装器支持范围" \
+                    "（Debian 9-13 / Ubuntu 18.04/19.04/20.04/22.04，官方原话 Use Debian when possible）。" \
+                    "请在服务商面板把系统重装为 Debian 12 或 13 再跑本脚本。"
+        fi
     else
         pf_fail "读不到 /etc/os-release"
     fi
